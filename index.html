@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gota Buchungssystem</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --earth-dark: #4a3f35;
+            --earth-medium: #8b7355;
+            --earth-light: #d4c4b0;
+            --cream: #f5f1eb;
+            --sage: #9fae9a;
+            --terracotta: #c77a5f;
+            --misten-color: #7d9b76;
+            --reiten-color: #b88965;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, #e8dfd5 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: var(--earth-dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(74, 63, 53, 0.15);
+            overflow: hidden;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--earth-dark) 0%, var(--earth-medium) 100%);
+            padding: 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><path d="M30 0L35 15L50 10L40 25L55 30L40 35L50 50L35 45L30 60L25 45L10 50L20 35L5 30L20 25L10 10L25 15Z" fill="rgba(255,255,255,0.05)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header-left {
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            color: var(--cream);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--earth-light);
+            font-size: 1.1rem;
+        }
+
+        .header-instructions {
+            position: relative;
+            z-index: 1;
+            color: var(--earth-light);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            max-width: 300px;
+        }
+
+        .header-instructions div {
+            margin-bottom: 0.3rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 0;
+        }
+
+        .calendar-section {
+            padding: 3rem;
+        }
+
+        .month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 2rem;
+        }
+
+        .month-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--earth-dark);
+        }
+
+        .header-person-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .header-person-button {
+            background: white;
+            border: 2px solid var(--earth-light);
+            color: var(--earth-dark);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        .header-person-button:hover {
+            border-color: var(--earth-medium);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 63, 53, 0.2);
+        }
+
+        .header-person-button.selected {
+            background: var(--earth-dark);
+            color: white;
+            border-color: var(--earth-dark);
+            font-weight: 600;
+        }
+
+        .header-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+
+        .header-type-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .header-type-button {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .header-type-button.misten {
+            border-color: var(--misten-color);
+            color: var(--misten-color);
+        }
+
+        .header-type-button.reiten {
+            border-color: var(--reiten-color);
+            color: var(--reiten-color);
+        }
+
+        .header-type-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 63, 53, 0.3);
+        }
+
+        .header-type-button.misten.selected {
+            background: var(--misten-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .header-type-button.reiten.selected {
+            background: var(--reiten-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .legend {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--cream);
+            border-radius: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: var(--earth-light);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(74, 63, 53, 0.1);
+        }
+
+        .day-header {
+            background: var(--earth-medium);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .day-cell {
+            background: white;
+            min-height: 120px;
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .day-cell:hover {
+            background: var(--cream);
+            transform: scale(1.02);
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(74, 63, 53, 0.15);
+        }
+
+        .day-cell.empty {
+            background: #fafafa;
+            cursor: default;
+        }
+
+        .day-cell.empty:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .day-cell.past {
+            background: #f5f5f5;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .day-cell.past:hover {
+            transform: none;
+            box-shadow: none;
+            background: #f5f5f5;
+        }
+
+        .day-cell.past .day-number {
+            color: #999;
+        }
+
+        .day-number {
+            font-weight: 600;
+            color: var(--earth-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .booking {
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            margin-bottom: 0.3rem;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .booking.misten {
+            background: var(--misten-color);
+            color: white;
+        }
+
+        .booking.reiten {
+            background: var(--reiten-color);
+            color: white;
+        }
+
+        .booking-person {
+            font-weight: 500;
+        }
+
+        .booking-remove {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .booking-remove:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, var(--sage) 0%, var(--misten-color) 100%);
+            padding: 2rem;
+            color: white;
+        }
+
+        .sidebar h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .month-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .month-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .month-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .month-button.active {
+            background: white;
+            color: var(--earth-dark);
+            border-color: white;
+            font-weight: 600;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(74, 63, 53, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 2rem 3rem;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--earth-light);
+            border-top-color: var(--earth-dark);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .storage-status {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            text-align: center;
+            color: white;
+        }
+
+        .storage-status.success {
+            background: rgba(159, 174, 154, 0.3);
+        }
+
+        .storage-status.error {
+            background: rgba(199, 122, 95, 0.3);
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                padding: 2rem;
+            }
+
+            .month-selector {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .month-button {
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .month-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .header-selection {
+                width: 100%;
+                align-items: stretch;
+            }
+
+            .header-person-buttons {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .header-person-button {
+                flex: 1;
+            }
+
+            .header-type-buttons {
+                width: 100%;
+            }
+
+            .header-type-button {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <h1>🐴 Gota</h1>
+                <div class="subtitle">Buchungssystem für Misten & Reiten</div>
+            </div>
+            <div class="header-instructions">
+                <div>📋 <strong>Anleitung:</strong></div>
+                <div>1. Person auswählen</div>
+                <div>2. Aktivität wählen</div>
+                <div>3. Auf Tag klicken</div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="calendar-section">
+                <div class="month-header">
+                    <h2 class="month-title" id="monthTitle"></h2>
+                    <div class="header-selection">
+                        <div class="header-person-buttons" id="personButtons"></div>
+                        <div class="header-type-buttons" id="typeButtons">
+                            <button class="header-type-button misten" onclick="selectType('misten', this)">Misten</button>
+                            <button class="header-type-button reiten" onclick="selectType('reiten', this)">Reiten</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--misten-color);"></div>
+                        <span>Misten</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--reiten-color);"></div>
+                        <span>Reiten</span>
+                    </div>
+                </div>
+
+                <div class="calendar-grid" id="calendar"></div>
+            </div>
+
+            <div class="sidebar">
+                <h3>Monat wählen</h3>
+                <div class="month-selector" id="monthSelector"></div>
+
+                <div class="storage-status" id="storageStatus">
+                    🔄 Lädt Buchungen...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div>Buchungen werden gespeichert...</div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // ⚠️ FIREBASE KONFIGURATION - HIER DEINE WERTE EINTRAGEN!
+        const firebaseConfig = {
+            apiKey: "DEIN_API_KEY",
+            authDomain: "DEIN_PROJECT_ID.firebaseapp.com",
+            projectId: "DEIN_PROJECT_ID",
+            storageBucket: "DEIN_PROJECT_ID.appspot.com",
+            messagingSenderId: "DEINE_SENDER_ID",
+            appId: "DEINE_APP_ID"
+        };
+
+        // Firebase initialisieren
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Globale Variablen
+        const persons = ['Anja', 'Josie', 'Maya'];
+        const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 
+                           'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+        const dayNames = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+        
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let selectedPerson = localStorage.getItem('selectedPerson') || persons[0];
+        let selectedType = localStorage.getItem('selectedType') || null;
+        let bookings = {};
+
+        // Echtzeit-Listener für Buchungen
+        const bookingsRef = doc(db, 'gota', 'bookings');
+        onSnapshot(bookingsRef, (doc) => {
+            if (doc.exists()) {
+                bookings = doc.data().data || {};
+                renderCalendar();
+                updateStorageStatus('✅ Synchronisiert', 'success');
+            } else {
+                bookings = {};
+                renderCalendar();
+                updateStorageStatus('✅ Bereit', 'success');
+            }
+        }, (error) => {
+            console.error('Fehler beim Laden:', error);
+            updateStorageStatus('⚠️ Verbindungsfehler', 'error');
+        });
+
+        // Buchungen in Firebase speichern
+        async function saveBookings() {
+            showLoading(true);
+            try {
+                await setDoc(bookingsRef, { data: bookings });
+                updateStorageStatus('✅ Gespeichert', 'success');
+            } catch (error) {
+                console.error('Fehler beim Speichern:', error);
+                updateStorageStatus('⚠️ Speicherfehler', 'error');
+                alert('Buchung konnte nicht gespeichert werden. Bitte versuche es erneut.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+
+        function updateStorageStatus(message, type) {
+            const status = document.getElementById('storageStatus');
+            status.textContent = message;
+            status.className = 'storage-status ' + type;
+        }
+
+        window.selectType = function(type, button) {
+            selectedType = type;
+            localStorage.setItem('selectedType', type);
+            document.querySelectorAll('.header-type-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            button.classList.add('selected');
+        }
+
+        function initializeMonthSelector() {
+            const selector = document.getElementById('monthSelector');
+            const currentDate = new Date();
+            
+            for (let i = 0; i < 12; i++) {
+                const month = (currentDate.getMonth() + i) % 12;
+                const year = currentDate.getFullYear() + Math.floor((currentDate.getMonth() + i) / 12);
+                
+                const button = document.createElement('button');
+                button.className = 'month-button';
+                if (i === 0) button.classList.add('active');
+                button.textContent = `${monthNames[month]} ${year}`;
+                button.onclick = () => changeMonth(month, year, button);
+                selector.appendChild(button);
+            }
+        }
+
+        function changeMonth(month, year, button) {
+            currentMonth = month;
+            currentYear = year;
+            
+            document.querySelectorAll('.month-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+            
+            renderCalendar();
+        }
+
+        function initializePersonButtons() {
+            const container = document.getElementById('personButtons');
+            persons.forEach((person) => {
+                const button = document.createElement('button');
+                button.className = 'header-person-button';
+                if (person === selectedPerson) button.classList.add('selected');
+                button.textContent = person;
+                button.onclick = () => selectPerson(person, button);
+                container.appendChild(button);
+            });
+        }
+
+        function selectPerson(person, button) {
+            selectedPerson = person;
+            localStorage.setItem('selectedPerson', person);
+            document.querySelectorAll('.header-person-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            button.classList.add('selected');
+        }
+
+        function renderCalendar() {
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = '';
+            
+            document.getElementById('monthTitle').textContent = 
+                `${monthNames[currentMonth]} ${currentYear}`;
+
+            // Add day headers
+            dayNames.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'day-header';
+                header.textContent = day;
+                calendar.appendChild(header);
+            });
+
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            
+            let startDay = firstDay.getDay();
+            startDay = startDay === 0 ? 6 : startDay - 1;
+
+            // Empty cells
+            for (let i = 0; i < startDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'day-cell empty';
+                calendar.appendChild(emptyCell);
+            }
+
+            // Days
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'day-cell';
+                
+                const cellDate = new Date(currentYear, currentMonth, day);
+                cellDate.setHours(0, 0, 0, 0);
+                const isPast = cellDate < today;
+                
+                if (isPast) {
+                    cell.classList.add('past');
+                }
+                
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = day;
+                cell.appendChild(dayNumber);
+
+                const dateKey = `${currentYear}-${currentMonth}-${day}`;
+                if (bookings[dateKey]) {
+                    bookings[dateKey].forEach(booking => {
+                        const bookingDiv = document.createElement('div');
+                        bookingDiv.className = `booking ${booking.type}`;
+                        
+                        const personSpan = document.createElement('span');
+                        personSpan.className = 'booking-person';
+                        personSpan.textContent = `${booking.person} - ${booking.type === 'misten' ? 'Misten' : 'Reiten'}`;
+                        
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'booking-remove';
+                        removeBtn.textContent = '×';
+                        removeBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            removeBooking(dateKey, booking);
+                        };
+                        
+                        bookingDiv.appendChild(personSpan);
+                        bookingDiv.appendChild(removeBtn);
+                        cell.appendChild(bookingDiv);
+                    });
+                }
+
+                if (!isPast) {
+                    cell.onclick = () => bookDay(day);
+                }
+                calendar.appendChild(cell);
+            }
+        }
+
+        async function bookDay(day) {
+            if (!selectedType) {
+                alert('Bitte wähle zuerst eine Aktivität (Misten oder Reiten)!');
+                return;
+            }
+
+            const dateKey = `${currentYear}-${currentMonth}-${day}`;
+            
+            if (!bookings[dateKey]) {
+                bookings[dateKey] = [];
+            }
+
+            const existingBooking = bookings[dateKey].find(b => 
+                b.person === selectedPerson && b.type === selectedType
+            );
+            if (existingBooking) {
+                alert(`${selectedPerson} hat bereits eine "${selectedType === 'misten' ? 'Misten' : 'Reiten'}"-Buchung an diesem Tag!`);
+                return;
+            }
+
+            bookings[dateKey].push({
+                person: selectedPerson,
+                type: selectedType
+            });
+
+            await saveBookings();
+        }
+
+        async function removeBooking(dateKey, booking) {
+            bookings[dateKey] = bookings[dateKey].filter(b => 
+                !(b.person === booking.person && b.type === booking.type)
+            );
+            if (bookings[dateKey].length === 0) {
+                delete bookings[dateKey];
+            }
+            await saveBookings();
+        }
+
+        // Auswahl wiederherstellen
+        function restoreSelection() {
+            if (selectedType) {
+                document.querySelectorAll('.header-type-button').forEach(btn => {
+                    if (btn.classList.contains(selectedType)) {
+                        btn.classList.add('selected');
+                    }
+                });
+            }
+        }
+
+        // Initialize
+        initializeMonthSelector();
+        initializePersonButtons();
+        restoreSelection();
+        updateStorageStatus('🔄 Verbinde...', 'success');
+    </script>
+</body>
+</html>
