@@ -395,6 +395,124 @@
             font-weight: 600;
         }
 
+        /* Login Screen */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--earth-dark) 0%, var(--earth-medium) 50%, var(--sage) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            transition: opacity 0.4s;
+        }
+
+        .login-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .login-box {
+            background: white;
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .login-box h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--earth-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .login-box .login-subtitle {
+            color: var(--earth-medium);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid var(--earth-light);
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            color: var(--earth-dark);
+            margin-bottom: 1rem;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+
+        .login-box input:focus {
+            border-color: var(--earth-medium);
+        }
+
+        .login-box input::placeholder {
+            color: var(--earth-light);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--earth-dark) 0%, var(--earth-medium) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(74, 63, 53, 0.3);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .login-error {
+            color: var(--terracotta);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            min-height: 1.4em;
+        }
+
+        .logout-button {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: var(--cream);
+            padding: 0.5rem 1.25rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .logout-button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -435,6 +553,33 @@
 
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        .export-calendar-button {
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border: 2px solid var(--earth-light);
+            color: var(--earth-dark);
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .export-calendar-button:hover {
+            border-color: var(--earth-medium);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 63, 53, 0.2);
+        }
+
+        .export-calendar-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         .storage-status {
@@ -505,6 +650,20 @@
     </style>
 </head>
 <body>
+    <!-- Login Screen -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <h2>🐴 Gota</h2>
+            <div class="login-subtitle">Bitte anmelden, um Buchungen zu verwalten</div>
+            <form id="loginForm" onsubmit="return false;">
+                <input type="email" id="loginEmail" placeholder="E-Mail" autocomplete="email" required>
+                <input type="password" id="loginPassword" placeholder="Passwort" autocomplete="current-password" required>
+                <button type="submit" class="login-button" id="loginButton">Anmelden</button>
+            </form>
+            <div class="login-error" id="loginError"></div>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <div class="header-left">
@@ -517,6 +676,7 @@
                 <div>2. Aktivität wählen</div>
                 <div>3. Auf Tag klicken</div>
             </div>
+            <button class="logout-button" id="logoutButton" onclick="handleLogout()">Abmelden</button>
         </header>
 
         <div class="main-content">
@@ -524,6 +684,9 @@
                 <div class="month-header">
                     <h2 class="month-title" id="monthTitle"></h2>
                     <div class="header-selection">
+                        <button class="export-calendar-button" id="exportCalendarBtn" onclick="exportToCalendar()" disabled>
+                            Kalender exportieren (.ics)
+                        </button>
                         <div class="header-person-buttons" id="personButtons"></div>
                         <div class="header-type-buttons" id="typeButtons">
                             <button class="header-type-button misten" onclick="selectType('misten', this)">Misten</button>
@@ -567,62 +730,164 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-        // ⚠️ FIREBASE KONFIGURATION - HIER DEINE WERTE EINTRAGEN!
+        /*
+         * ⚠️ FIREBASE SETUP - Authentifizierung aktivieren:
+         *
+         * 1. Gehe zu https://console.firebase.google.com
+         * 2. Wähle das Projekt "gota-buchung"
+         * 3. Gehe zu "Authentication" → "Sign-in method"
+         * 4. Aktiviere "E-Mail/Passwort"
+         * 5. Unter "Users" → "Nutzer hinzufügen": Erstelle Konten für jede Person
+         *    (z.B. anja@gota-buchung.de, josie@gota-buchung.de, maya@gota-buchung.de)
+         *
+         * 6. Gehe zu "Firestore Database" → "Regeln" und setze:
+         *    rules_version = '2';
+         *    service cloud.firestore {
+         *      match /databases/{database}/documents {
+         *        match /gota/{document=**} {
+         *          allow read, write: if request.auth != null;
+         *        }
+         *      }
+         *    }
+         */
         const firebaseConfig = {
-apiKey: "AIzaSyCBB2B81lP5vNU97MzdJD-M7U5OZK546C8",
-  authDomain: "gota-buchung.firebaseapp.com",
-  projectId: "gota-buchung",
-  storageBucket: "gota-buchung.firebasestorage.app",
-  messagingSenderId: "415833430836",
-  appId: "1:415833430836:web:60640af1e0494edc60a361",
-  measurementId: "G-GP77XJ8S3P"
+            apiKey: "AIzaSyCBB2B81lP5vNU97MzdJD-M7U5OZK546C8",
+            authDomain: "gota-buchung.firebaseapp.com",
+            projectId: "gota-buchung",
+            storageBucket: "gota-buchung.firebasestorage.app",
+            messagingSenderId: "415833430836",
+            appId: "1:415833430836:web:60640af1e0494edc60a361",
+            measurementId: "G-GP77XJ8S3P"
         };
 
         // Firebase initialisieren
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
         // Globale Variablen
         const persons = ['Anja', 'Josie', 'Maya'];
-        const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 
+        const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
                            'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
         const dayNames = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-        
+
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
         let selectedPerson = localStorage.getItem('selectedPerson') || persons[0];
         let selectedType = localStorage.getItem('selectedType') || null;
         let bookings = {};
+        let unsubscribeSnapshot = null;
 
-        // Echtzeit-Listener für Buchungen
-        const bookingsRef = doc(db, 'gota', 'bookings');
-        onSnapshot(bookingsRef, (doc) => {
-            if (doc.exists()) {
-                bookings = doc.data().data || {};
-                renderCalendar();
-                updateStorageStatus('✅ Synchronisiert', 'success');
+        // --- Authentifizierung ---
+
+        const loginOverlay = document.getElementById('loginOverlay');
+        const loginForm = document.getElementById('loginForm');
+        const loginEmail = document.getElementById('loginEmail');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginButton = document.getElementById('loginButton');
+        const loginError = document.getElementById('loginError');
+
+        loginForm.addEventListener('submit', async () => {
+            loginButton.disabled = true;
+            loginError.textContent = '';
+
+            try {
+                await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value);
+            } catch (error) {
+                const messages = {
+                    'auth/invalid-credential': 'E-Mail oder Passwort ist falsch.',
+                    'auth/invalid-email': 'Ungültige E-Mail-Adresse.',
+                    'auth/user-disabled': 'Dieses Konto wurde deaktiviert.',
+                    'auth/too-many-requests': 'Zu viele Versuche. Bitte warte einen Moment.',
+                };
+                loginError.textContent = messages[error.code] || 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.';
+            } finally {
+                loginButton.disabled = false;
+            }
+        });
+
+        window.handleLogout = async function() {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error('Fehler beim Abmelden:', error);
+            }
+        };
+
+        // Auth-Status überwachen
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Eingeloggt → App anzeigen
+                loginOverlay.classList.add('hidden');
+                loginPassword.value = '';
+                loginError.textContent = '';
+                startFirestoreListener();
             } else {
+                // Ausgeloggt → Login anzeigen
+                loginOverlay.classList.remove('hidden');
+                stopFirestoreListener();
                 bookings = {};
                 renderCalendar();
-                updateStorageStatus('✅ Bereit', 'success');
+                updateStorageStatus('🔒 Nicht angemeldet', '');
+                updateExportButton();
             }
-        }, (error) => {
-            console.error('Fehler beim Laden:', error);
-            updateStorageStatus('⚠️ Verbindungsfehler', 'error');
         });
+
+        // --- Firestore Listener (nur wenn eingeloggt) ---
+
+        function startFirestoreListener() {
+            if (unsubscribeSnapshot) return; // bereits aktiv
+
+            const bookingsRef = doc(db, 'gota', 'bookings');
+            unsubscribeSnapshot = onSnapshot(bookingsRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    bookings = docSnap.data().data || {};
+                    renderCalendar();
+                    updateStorageStatus('✅ Synchronisiert', 'success');
+                } else {
+                    bookings = {};
+                    renderCalendar();
+                    updateStorageStatus('✅ Bereit', 'success');
+                }
+                updateExportButton();
+            }, (error) => {
+                console.error('Fehler beim Laden:', error);
+                if (error.code === 'permission-denied') {
+                    updateStorageStatus('🔒 Keine Berechtigung', 'error');
+                } else {
+                    updateStorageStatus('⚠️ Verbindungsfehler', 'error');
+                }
+            });
+        }
+
+        function stopFirestoreListener() {
+            if (unsubscribeSnapshot) {
+                unsubscribeSnapshot();
+                unsubscribeSnapshot = null;
+            }
+        }
 
         // Buchungen in Firebase speichern
         async function saveBookings() {
+            if (!auth.currentUser) return;
+
             showLoading(true);
             try {
+                const bookingsRef = doc(db, 'gota', 'bookings');
                 await setDoc(bookingsRef, { data: bookings });
                 updateStorageStatus('✅ Gespeichert', 'success');
             } catch (error) {
                 console.error('Fehler beim Speichern:', error);
-                updateStorageStatus('⚠️ Speicherfehler', 'error');
-                alert('Buchung konnte nicht gespeichert werden. Bitte versuche es erneut.');
+                if (error.code === 'permission-denied') {
+                    updateStorageStatus('🔒 Keine Berechtigung', 'error');
+                    alert('Keine Berechtigung zum Speichern. Bitte melde dich erneut an.');
+                } else {
+                    updateStorageStatus('⚠️ Speicherfehler', 'error');
+                    alert('Buchung konnte nicht gespeichert werden. Bitte versuche es erneut.');
+                }
             } finally {
                 showLoading(false);
             }
@@ -655,11 +920,11 @@ apiKey: "AIzaSyCBB2B81lP5vNU97MzdJD-M7U5OZK546C8",
         function initializeMonthSelector() {
             const selector = document.getElementById('monthSelector');
             const currentDate = new Date();
-            
+
             for (let i = 0; i < 12; i++) {
                 const month = (currentDate.getMonth() + i) % 12;
                 const year = currentDate.getFullYear() + Math.floor((currentDate.getMonth() + i) / 12);
-                
+
                 const button = document.createElement('button');
                 button.className = 'month-button';
                 if (i === 0) button.classList.add('active');
@@ -672,12 +937,12 @@ apiKey: "AIzaSyCBB2B81lP5vNU97MzdJD-M7U5OZK546C8",
         function changeMonth(month, year, button) {
             currentMonth = month;
             currentYear = year;
-            
+
             document.querySelectorAll('.month-button').forEach(btn => {
                 btn.classList.remove('active');
             });
             button.classList.add('active');
-            
+
             renderCalendar();
         }
 
@@ -705,11 +970,10 @@ apiKey: "AIzaSyCBB2B81lP5vNU97MzdJD-M7U5OZK546C8",
         function renderCalendar() {
             const calendar = document.getElementById('calendar');
             calendar.innerHTML = '';
-            
-            document.getElementById('monthTitle').textContent = 
+
+            document.getElementById('monthTitle').textContent =
                 `${monthNames[currentMonth]} ${currentYear}`;
 
-            // Add day headers
             dayNames.forEach(day => {
                 const header = document.createElement('div');
                 header.className = 'day-header';
@@ -720,33 +984,31 @@ apiKey: "AIzaSyCBB2B81lP5vNU97MzdJD-M7U5OZK546C8",
             const firstDay = new Date(currentYear, currentMonth, 1);
             const lastDay = new Date(currentYear, currentMonth + 1, 0);
             const daysInMonth = lastDay.getDate();
-            
+
             let startDay = firstDay.getDay();
             startDay = startDay === 0 ? 6 : startDay - 1;
 
-            // Empty cells
             for (let i = 0; i < startDay; i++) {
                 const emptyCell = document.createElement('div');
                 emptyCell.className = 'day-cell empty';
                 calendar.appendChild(emptyCell);
             }
 
-            // Days
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
             for (let day = 1; day <= daysInMonth; day++) {
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
-                
+
                 const cellDate = new Date(currentYear, currentMonth, day);
                 cellDate.setHours(0, 0, 0, 0);
                 const isPast = cellDate < today;
-                
+
                 if (isPast) {
                     cell.classList.add('past');
                 }
-                
+
                 const dayNumber = document.createElement('div');
                 dayNumber.className = 'day-number';
                 dayNumber.textContent = day;
@@ -757,11 +1019,11 @@ apiKey: "AIzaSyCBB2B81lP5vNU97MzdJD-M7U5OZK546C8",
                     bookings[dateKey].forEach(booking => {
                         const bookingDiv = document.createElement('div');
                         bookingDiv.className = `booking ${booking.type}`;
-                        
+
                         const personSpan = document.createElement('span');
                         personSpan.className = 'booking-person';
                         personSpan.textContent = `${booking.person} - ${booking.type === 'misten' ? 'Misten' : 'Reiten'}`;
-                        
+
                         const removeBtn = document.createElement('button');
                         removeBtn.className = 'booking-remove';
                         removeBtn.textContent = '×';
@@ -769,7 +1031,7 @@ apiKey: "AIzaSyCBB2B81lP5vNU97MzdJD-M7U5OZK546C8",
                             e.stopPropagation();
                             removeBooking(dateKey, booking);
                         };
-                        
+
                         bookingDiv.appendChild(personSpan);
                         bookingDiv.appendChild(removeBtn);
                         cell.appendChild(bookingDiv);
@@ -784,18 +1046,20 @@ apiKey: "AIzaSyCBB2B81lP5vNU97MzdJD-M7U5OZK546C8",
         }
 
         async function bookDay(day) {
+            if (!auth.currentUser) return;
+
             if (!selectedType) {
                 alert('Bitte wähle zuerst eine Aktivität (Misten oder Reiten)!');
                 return;
             }
 
             const dateKey = `${currentYear}-${currentMonth}-${day}`;
-            
+
             if (!bookings[dateKey]) {
                 bookings[dateKey] = [];
             }
 
-            const existingBooking = bookings[dateKey].find(b => 
+            const existingBooking = bookings[dateKey].find(b =>
                 b.person === selectedPerson && b.type === selectedType
             );
             if (existingBooking) {
@@ -812,7 +1076,9 @@ apiKey: "AIzaSyCBB2B81lP5vNU97MzdJD-M7U5OZK546C8",
         }
 
         async function removeBooking(dateKey, booking) {
-            bookings[dateKey] = bookings[dateKey].filter(b => 
+            if (!auth.currentUser) return;
+
+            bookings[dateKey] = bookings[dateKey].filter(b =>
                 !(b.person === booking.person && b.type === booking.type)
             );
             if (bookings[dateKey].length === 0) {
@@ -821,7 +1087,75 @@ apiKey: "AIzaSyCBB2B81lP5vNU97MzdJD-M7U5OZK546C8",
             await saveBookings();
         }
 
-        // Auswahl wiederherstellen
+        // --- iCalendar Export ---
+
+        window.exportToCalendar = function() {
+            const events = [];
+            const now = new Date();
+            const timestamp = now.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+
+            for (const [dateKey, dayBookings] of Object.entries(bookings)) {
+                const parts = dateKey.split('-');
+                const year = parseInt(parts[0]);
+                const month = parseInt(parts[1]); // 0-indexed from JS
+                const day = parseInt(parts[2]);
+
+                // Format as YYYYMMDD (month needs +1 since stored 0-indexed)
+                const dtStart = `${year}${String(month + 1).padStart(2, '0')}${String(day).padStart(2, '0')}`;
+                // All-day event: DTEND is next day
+                const nextDay = new Date(year, month, day + 1);
+                const dtEnd = `${nextDay.getFullYear()}${String(nextDay.getMonth() + 1).padStart(2, '0')}${String(nextDay.getDate()).padStart(2, '0')}`;
+
+                dayBookings.forEach((booking, index) => {
+                    const summary = `${booking.person} - ${booking.type === 'misten' ? 'Misten' : 'Reiten'}`;
+                    const uid = `gota-${dateKey}-${booking.person}-${booking.type}@gota-buchung`;
+
+                    events.push([
+                        'BEGIN:VEVENT',
+                        `UID:${uid}`,
+                        `DTSTAMP:${timestamp}`,
+                        `DTSTART;VALUE=DATE:${dtStart}`,
+                        `DTEND;VALUE=DATE:${dtEnd}`,
+                        `SUMMARY:${summary}`,
+                        `DESCRIPTION:Gota Buchung: ${booking.person} - ${booking.type === 'misten' ? 'Misten' : 'Reiten'}`,
+                        'END:VEVENT'
+                    ].join('\r\n'));
+                });
+            }
+
+            if (events.length === 0) {
+                alert('Keine Buchungen zum Exportieren vorhanden.');
+                return;
+            }
+
+            const icsContent = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//Gota Buchungssystem//DE',
+                'CALSCALE:GREGORIAN',
+                'METHOD:PUBLISH',
+                'X-WR-CALNAME:Gota Buchungen',
+                ...events,
+                'END:VCALENDAR'
+            ].join('\r\n');
+
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'gota-buchungen.ics';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        };
+
+        function updateExportButton() {
+            const btn = document.getElementById('exportCalendarBtn');
+            const hasBookings = Object.keys(bookings).length > 0;
+            btn.disabled = !hasBookings || !auth.currentUser;
+        }
+
         function restoreSelection() {
             if (selectedType) {
                 document.querySelectorAll('.header-type-button').forEach(btn => {
@@ -832,11 +1166,11 @@ apiKey: "AIzaSyCBB2B81lP5vNU97MzdJD-M7U5OZK546C8",
             }
         }
 
-        // Initialize
+        // Initialize UI (Firestore wird erst nach Login gestartet)
         initializeMonthSelector();
         initializePersonButtons();
         restoreSelection();
-        updateStorageStatus('🔄 Verbinde...', 'success');
+        updateStorageStatus('🔒 Bitte anmelden', '');
     </script>
 </body>
 </html>
