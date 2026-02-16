@@ -557,27 +557,26 @@
 
         .export-calendar-button {
             width: 100%;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            color: white;
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border: 2px solid var(--earth-light);
+            color: var(--earth-dark);
             border-radius: 12px;
             cursor: pointer;
             font-family: 'DM Sans', sans-serif;
             font-size: 0.95rem;
-            font-weight: 600;
+            font-weight: 500;
             transition: all 0.3s ease;
-            margin-top: 1.5rem;
         }
 
         .export-calendar-button:hover {
-            background: rgba(255, 255, 255, 0.35);
+            border-color: var(--earth-medium);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 12px rgba(74, 63, 53, 0.2);
         }
 
         .export-calendar-button:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
@@ -685,6 +684,9 @@
                 <div class="month-header">
                     <h2 class="month-title" id="monthTitle"></h2>
                     <div class="header-selection">
+                        <button class="export-calendar-button" id="exportCalendarBtn" onclick="exportToCalendar()" disabled>
+                            Kalender exportieren (.ics)
+                        </button>
                         <div class="header-person-buttons" id="personButtons"></div>
                         <div class="header-type-buttons" id="typeButtons">
                             <button class="header-type-button misten" onclick="selectType('misten', this)">Misten</button>
@@ -710,10 +712,6 @@
             <div class="sidebar">
                 <h3>Monat wählen</h3>
                 <div class="month-selector" id="monthSelector"></div>
-
-                <button class="export-calendar-button" id="exportCalendarBtn" onclick="exportToCalendar()" disabled>
-                    Kalender exportieren (.ics)
-                </button>
 
                 <div class="storage-status" id="storageStatus">
                     🔄 Lädt Buchungen...
