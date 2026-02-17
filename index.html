@@ -731,7 +731,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
         /*
          * ⚠️ FIREBASE SETUP - Authentifizierung aktivieren:
@@ -740,10 +740,9 @@
          * 2. Wähle das Projekt "gota-buchung"
          * 3. Gehe zu "Authentication" → "Sign-in method"
          * 4. Aktiviere "E-Mail/Passwort"
-         * 5. Unter "Users" → "Nutzer hinzufügen": Erstelle Konten für jede Person
-         *    (z.B. anja@gota-buchung.de, josie@gota-buchung.de, maya@gota-buchung.de)
+         *    (Nutzer werden beim ersten Login automatisch erstellt)
          *
-         * 6. Gehe zu "Firestore Database" → "Regeln" und setze:
+         * 5. Gehe zu "Firestore Database" → "Regeln" und setze:
          *    rules_version = '2';
          *    service cloud.firestore {
          *      match /databases/{database}/documents {
@@ -790,20 +789,56 @@
         const loginButton = document.getElementById('loginButton');
         const loginError = document.getElementById('loginError');
 
+        // Erlaubte Anmeldedaten (E-Mail → Passwort)
+        const ALLOWED_CREDENTIALS = {
+            't.tschaffler@gmail.com': '1234',
+        };
+
+        // Firebase erfordert mind. 6 Zeichen – Passwort intern auffüllen
+        function firebasePassword(password) {
+            const suffix = '##gota';
+            return password.length >= 6 ? password : password + suffix;
+        }
+
         loginForm.addEventListener('submit', async () => {
             loginButton.disabled = true;
             loginError.textContent = '';
 
+            const email = loginEmail.value.trim();
+            const password = loginPassword.value;
+
+            // Prüfe ob Anmeldedaten erlaubt sind
+            if (!ALLOWED_CREDENTIALS[email] || ALLOWED_CREDENTIALS[email] !== password) {
+                loginError.textContent = 'E-Mail oder Passwort ist falsch.';
+                loginButton.disabled = false;
+                return;
+            }
+
+            const fbPassword = firebasePassword(password);
+
             try {
-                await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value);
+                await signInWithEmailAndPassword(auth, email, fbPassword);
             } catch (error) {
-                const messages = {
-                    'auth/invalid-credential': 'E-Mail oder Passwort ist falsch.',
-                    'auth/invalid-email': 'Ungültige E-Mail-Adresse.',
-                    'auth/user-disabled': 'Dieses Konto wurde deaktiviert.',
-                    'auth/too-many-requests': 'Zu viele Versuche. Bitte warte einen Moment.',
-                };
-                loginError.textContent = messages[error.code] || 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.';
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+                    // Nutzer existiert noch nicht → automatisch erstellen
+                    try {
+                        await createUserWithEmailAndPassword(auth, email, fbPassword);
+                    } catch (createError) {
+                        const messages = {
+                            'auth/email-already-in-use': 'E-Mail oder Passwort ist falsch.',
+                            'auth/invalid-email': 'Ungültige E-Mail-Adresse.',
+                            'auth/too-many-requests': 'Zu viele Versuche. Bitte warte einen Moment.',
+                        };
+                        loginError.textContent = messages[createError.code] || 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.';
+                    }
+                } else {
+                    const messages = {
+                        'auth/invalid-email': 'Ungültige E-Mail-Adresse.',
+                        'auth/user-disabled': 'Dieses Konto wurde deaktiviert.',
+                        'auth/too-many-requests': 'Zu viele Versuche. Bitte warte einen Moment.',
+                    };
+                    loginError.textContent = messages[error.code] || 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.';
+                }
             } finally {
                 loginButton.disabled = false;
             }
