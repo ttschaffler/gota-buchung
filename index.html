@@ -780,10 +780,14 @@
             } catch (error) {
                 if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
                     const messages = {
+                        'auth/unauthorized-domain': 'Diese Domain ist nicht autorisiert. Bitte in der Firebase Console unter Authentication → Settings → Authorized domains hinzufügen.',
                         'auth/account-exists-with-different-credential': 'Dieses Konto existiert bereits mit einer anderen Anmeldemethode.',
                         'auth/too-many-requests': 'Zu viele Versuche. Bitte warte einen Moment.',
+                        'auth/popup-blocked': 'Pop-up wurde vom Browser blockiert. Bitte Pop-ups erlauben.',
+                        'auth/internal-error': 'Interner Fehler. Prüfe ob Google Sign-In in der Firebase Console korrekt konfiguriert ist.',
                     };
-                    loginError.textContent = messages[error.code] || 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.';
+                    console.error('Login-Fehler:', error.code, error.message);
+                    loginError.textContent = messages[error.code] || `Anmeldung fehlgeschlagen (${error.code}). Bitte versuche es erneut.`;
                 }
             } finally {
                 googleLoginButton.disabled = false;
